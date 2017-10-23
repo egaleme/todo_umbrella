@@ -1,5 +1,5 @@
 defmodule Todo.User.Worker do
-	defstruct id: "",  name: "", password_hash: "", email: "", email_verfied: false, todos: %{}
+	defstruct id: "",  name: "", password_hash: "", email: "", email_verified: false, todos: %{}
 
 	alias Todo.User.Worker
 

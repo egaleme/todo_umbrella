@@ -27,8 +27,8 @@ defmodule Todo.User.UserServer do
 		GenServer.cast(__MODULE__, {:update_todo, email, id})
 	end
 
-	def get_user(email) do
-		GenServer.call(__MODULE__, {:get_user, email})
+	def get_todos(email) do
+		GenServer.call(__MODULE__, {:get_todos, email})
 	end
 
 	### Server API
@@ -49,13 +49,13 @@ defmodule Todo.User.UserServer do
 		Todo.User.Worker.add_user(pid, user.id, user.name, user.email, user.password_hash)
 		state = Map.put(state, email, pid)
 		user = Todo.User.Worker.get_user pid
-		{:reply, {:ok, Map.from_struct(user)}, state}
+		{:reply, {:ok, to_map(user)}, state}
 	end
 
-	def handle_call({:get_user, email}, _from, state) do
+	def handle_call({:get_todos, email}, _from, state) do
 		pid = Map.get(state, email)
 		user = Todo.User.Worker.get_user pid
-		{:reply, user, state}
+		{:reply, to_map(user).todos, state}
 	end
 
 	def handle_call({:get_users}, _from, state) do
@@ -98,5 +98,13 @@ defmodule Todo.User.UserServer do
 		{:ok, pid} = Todo.User.UserSupervisor.new_user()
 		Todo.User.Worker.initial_user(pid, x.id, x.name, x.email, x.password_hash, x.todos)
 		pid
+	end
+
+	def to_map(x) do
+		%{
+			name: x.name,
+			email: x.email,
+			todos: x.todos
+		}
 	end
 end

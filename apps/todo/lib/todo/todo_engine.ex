@@ -20,7 +20,7 @@ defmodule TodoEngine do
 		Todo.User.UserServer.get_users
 	end
 
-	def get_user(email) do
-		Todo.User.UserServer.get_user email
+	def get_todos(email) do
+		Todo.User.UserServer.get_todos email
 	end
 end
