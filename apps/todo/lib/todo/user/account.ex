@@ -5,7 +5,8 @@ defmodule Todo.User.Account do
   alias Todo.User.User
 
   def list_users do
-  	Repo.all(User)
+  	Repo.all(from u in User,
+              order_by: [asc: :updated_at])
   end
 
   def create_user(attrs \\ %{}) do

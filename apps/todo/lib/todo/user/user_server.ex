@@ -74,7 +74,7 @@ defmodule Todo.User.UserServer do
 		pid = Map.get(state, email)
 		Todo.User.Worker.update_todo(pid, id)
 		user = Todo.User.Worker.get_user(pid)
-		Account.update_user(user.id, %{todos: user.todos})
+		Account.update_user(user.id, %{todos: list_to_map(user.todos)})
 		{:noreply, state}
 	end
 
@@ -83,24 +83,28 @@ defmodule Todo.User.UserServer do
 		id = autoincrement(Todo.User.Worker.get_todos(pid))
 		Todo.User.Worker.add_todo(pid, {id, description})
 		user = Todo.User.Worker.get_user(pid)
-		Account.update_user(user.id, %{todos: user.todos})
+		Account.update_user(user.id, %{todos: list_to_map(user.todos)})
 		{:noreply, state}
 	end
 
 	#### Helpers
 	defp autoincrement(state) do
 		state
-		|> Kernel.map_size
+		|> Kernel.length
 		|> Kernel.+(1)
 	end
 
-	def get_pid(x) do
+	defp list_to_map(todos) do
+		Enum.reduce(todos, %{}, fn(x, y)-> Map.put(y, to_string(x["id"]), %{"description" => x["description"], "done" => x["done"]}) end)
+	end
+
+	defp get_pid(x) do
 		{:ok, pid} = Todo.User.UserSupervisor.new_user()
 		Todo.User.Worker.initial_user(pid, x.id, x.name, x.email, x.password_hash, x.todos)
 		pid
 	end
 
-	def to_map(x) do
+	defp to_map(x) do
 		%{
 			name: x.name,
 			email: x.email,
