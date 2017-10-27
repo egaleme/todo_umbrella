@@ -7,7 +7,8 @@ defmodule Todo.User.TopSupervisor do
 
 	def init(:ok) do
 		children = [worker(Todo.User.UserServer, []),
-				  supervisor(Todo.User.UserSupervisor, [])]
+				  supervisor(Todo.User.UserSupervisor, []),
+				  supervisor(Todo.Todos.WorkerSupervisor, []),]
 
 		supervise children, strategy: :one_for_one
 	end

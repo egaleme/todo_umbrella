@@ -15,7 +15,6 @@ defmodule Todo.Application do
     Supervisor.start_link([
       supervisor(Todo.Repo, []),
       supervisor(Todo.User.TopSupervisor, []),
-      supervisor(Todo.Todos.WorkerSupervisor, []),
     ], strategy: :one_for_one, name: Todo.Supervisor)
   end
 end
