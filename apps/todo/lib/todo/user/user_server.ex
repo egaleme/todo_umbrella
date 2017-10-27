@@ -54,8 +54,8 @@ defmodule Todo.User.UserServer do
 
 	def handle_call({:get_todos, email}, _from, state) do
 		pid = Map.get(state, email)
-		user = Todo.User.Worker.get_user pid
-		{:reply, to_map(user).todos, state}
+		todos = Todo.User.Worker.get_todos pid
+		{:reply, map_list(todos), state}
 	end
 
 	def handle_call({:get_users}, _from, state) do
@@ -74,7 +74,7 @@ defmodule Todo.User.UserServer do
 		pid = Map.get(state, email)
 		Todo.User.Worker.update_todo(pid, id)
 		user = Todo.User.Worker.get_user(pid)
-		Account.update_user(user.id, %{todos: list_to_map(user.todos)})
+		Account.update_user(user.id, %{todos: Todo.User.Worker.get_todos(pid)})
 		{:noreply, state}
 	end
 
@@ -83,19 +83,15 @@ defmodule Todo.User.UserServer do
 		id = autoincrement(Todo.User.Worker.get_todos(pid))
 		Todo.User.Worker.add_todo(pid, {id, description})
 		user = Todo.User.Worker.get_user(pid)
-		Account.update_user(user.id, %{todos: list_to_map(user.todos)})
+		Account.update_user(user.id, %{todos: Todo.User.Worker.get_todos(pid)})
 		{:noreply, state}
 	end
 
 	#### Helpers
 	defp autoincrement(state) do
 		state
-		|> Kernel.length
+		|> Kernel.map_size
 		|> Kernel.+(1)
-	end
-
-	defp list_to_map(todos) do
-		Enum.reduce(todos, %{}, fn(x, y)-> Map.put(y, to_string(x["id"]), %{"description" => x["description"], "done" => x["done"]}) end)
 	end
 
 	defp get_pid(x) do
@@ -110,5 +106,9 @@ defmodule Todo.User.UserServer do
 			email: x.email,
 			todos: x.todos
 		}
+	end
+
+	defp map_list(m) do
+		Enum.map(m, fn {x, y} -> %{"id" => x, "description" => y["description"], "done" => y["done"]} end)
 	end
 end
