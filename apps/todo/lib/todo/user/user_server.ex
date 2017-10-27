@@ -66,7 +66,7 @@ defmodule Todo.User.UserServer do
 	def handle_call({:login, email, password}, _from, state) do
 		pid = Map.get(state, email)
 		user = Todo.User.Worker.get_user(pid)
-		status = Todo.Auth.UserAuth.login_by_password(password, user)
+		status = Todo.Auth.UserAuth.login_by_password(password, auth_user(user))
 		{:reply, status, state}
 	end
 
@@ -110,5 +110,15 @@ defmodule Todo.User.UserServer do
 
 	defp map_list(m) do
 		Enum.map(m, fn {x, y} -> %{"id" => x, "description" => y["description"], "done" => y["done"]} end)
+	end
+
+	def auth_user(u) do
+		%{
+			id: u.id,
+			email_verified: u.email_verified,
+			password_hash: u.password_hash,
+			name: u.name,
+			email: u.email
+		}
 	end
 end
