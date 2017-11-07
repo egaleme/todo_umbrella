@@ -2,6 +2,8 @@ defmodule Todo.User.UserServer do
 	use GenServer
 	alias Todo.User.Account
 
+	@process_after 3
+
 	### Client API
 	def start_link do
 		GenServer.start_link __MODULE__, :ok, name: __MODULE__
@@ -33,7 +35,7 @@ defmodule Todo.User.UserServer do
 
 	### Server API
 	def init(:ok) do
-		Process.send_after(self(), :process, 1000)
+		process_db()
 		{:ok, %{}}
 	end
 
@@ -87,7 +89,21 @@ defmodule Todo.User.UserServer do
 		{:noreply, state}
 	end
 
+	def terminate(_reason, state) do
+		Enum.each(state, &user_update/1)
+	end
+
 	#### Helpers
+
+	defp process_db do
+		Process.send_after(self(), :process, @process_after)
+	end
+
+	def user_update({_x, y}) do
+		user = Todo.User.Worker.get_user(y)
+		Account.update_user(user.id, %{todos: Todo.User.Worker.get_todos(y)})
+	end
+
 	defp autoincrement(state) do
 		state
 		|> Kernel.map_size
